@@ -79,26 +79,44 @@ def process_images_for_alexnet(
         transformed_image.save(f"./{location_to_save}/{image_name_single}")
 
 
+# defining the path to all the training images
 training_images_path = "./images/training_images/"
+
+# creating list of paths to all the images and all images names
 training_images_path_all = [
     training_images_path + f for f in os.listdir(training_images_path)
     if f.endswith(".JPEG")
 ]
+
 training_images_just_names = [
     f for f in os.listdir(training_images_path)
     if f.endswith(".JPEG")
 ]
 
 
-def chunkify(list_of_things, cores):
-    quotient, remainder = divmod(len(list_of_things), cores)
+def chunkify(
+        list_of_things,
+        n_split
+):
+    """
+    This function divides a list of things to list of lists.
 
-    chunks = [list_of_things[quotient * n:quotient * (n + 1)] for n in range(cores)]
+    The last sub-list may have more items than the other sub-lists because some items
+    don't neatly fall into n_split portions and are appended to the last sub-list.
+
+    :param list_of_things: A list with items
+    :param n_split: Number of sub-lists to split the original list into
+    :return: List with n_split sub-lists
+    """
+    quotient, remainder = divmod(len(list_of_things), n_split)
+
+    chunks = [list_of_things[quotient * n:quotient * (n + 1)] for n in range(n_split)]
     chunks[-1].extend(list_of_things[-remainder:])
 
     return chunks
 
 
+# creating a directory to store the outputs
 try:
     os.mkdir("./images/training_images_processed/")
 except FileExistsError:
@@ -114,8 +132,10 @@ if __name__ == "__main__":
     name_chunks = chunkify(training_images_just_names, number_of_cores)
 
     # list of arguments for the all the tasks
-    arguments = [(path_chunks[i], name_chunks[i], training_images_output_path, 256, 256)
-                 for i in range(number_of_cores)]
+    arguments = [
+        (path_chunks[i], name_chunks[i], training_images_output_path, 256, 256)
+        for i in range(number_of_cores)
+    ]
 
     with Pool(number_of_cores) as pool:
         pool.starmap(process_images_for_alexnet, arguments)
