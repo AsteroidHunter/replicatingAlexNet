@@ -1,7 +1,7 @@
 # Replicating AlexNet
 
 <img src="https://img.shields.io/badge/Status-In_Progress-orange" alt="Status" height="40">
-<img src="https://img.shields.io/badge/Currently_Working_On-Defining_the_Model-blue" alt="Currently Working On" height="30">
+<img src="https://img.shields.io/badge/Currently_Working_On-PCA_of_RGB_values-blue" alt="Currently Working On" height="30">
 
 This repository contains my attempt at replicating [Krizhevsky et al. (2012)](https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf). I chose AlexNet because it is a foundational paper in deep learning and replicating it would allow me to get a better grasp of the basics and some research engineering in DL.
 
@@ -13,7 +13,7 @@ This repository contains my attempt at replicating [Krizhevsky et al. (2012)](ht
 5. `images`: In the repository, this folder contains images that were used for testing some of the preprocessing steps. Locally, this folder also contains the training, testing, validation, and patch images files. The latter set of files weren't pushed as they are collectively over 140 GB in size.
 
 ### A succinct delineation of steps I followed
-1. 
+(Will be added after the model starts training) 
 
 ### Time spent:
 - Preprocessing: 10 pomodoro sessions (~250 minutes)
