@@ -1,19 +1,27 @@
 # Replicating AlexNet
 
 <img src="https://img.shields.io/badge/Status-In_Progress-orange" alt="Status" height="40">
-<img src="https://img.shields.io/badge/Currently_Working_On-PCA_of_RGB_values-blue" alt="Currently Working On" height="30">
+<img src="https://img.shields.io/badge/Currently_Working_On-Prepping_model_for_the_HPC-8A2BE2" alt="Currently Working On" height="30">
 
-This repository contains my attempt at replicating [Krizhevsky et al. (2012)](https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf). I chose AlexNet because it is a foundational paper in deep learning and replicating it would allow me to get a better grasp of the basics and some research engineering in DL.
+This repository contains my attempt at replicating [Krizhevsky et al. (2012)](https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf). I chose AlexNet because it is a foundational paper in deep learning and replicating it would allow me to get a better grasp of the basics and some research engineering exposure in DL.
 
-### Description of files
-1. `preprocessing_playground.ipynb`: Contains code that was used to unzip the training images, replacing damaged images with the provided patch images, removing corrupted images (turns out, there was only one such image), a function for rescaling and cropping images as described in the paper, mean image substraction, and tests related to the previous two preprocessing steps 
-2. `preprocessing.py`: This script contains code from the above mentioned python notebook, and it rescales and crops 1.2 million training images using the multiprocessing library
-3. `augment_ingest.ipynb`: In this notebook, I computed the mean activity of all the training images and then saved them. I also tested a few ways to sample 1024 random crops of an input image (to increase the training data size as done in the paper) and perform principal component analysis of the RGB pixel values.
-4. `alexnet_torch.ipynb`: So far, this notebook contains portions of the neural network architechture employed by the authors.
-5. `images`: In the repository, this folder contains images that were used for testing some of the preprocessing steps. Locally, this folder also contains the training, testing, validation, and patch images files. The latter set of files weren't pushed as they are collectively over 140 GB in size.
+### Brief description of the main files/folders
+1. `./images/`: This folder contains images that were used for testing some of the preprocessing steps. Locally, this folder also contains the training, testing, validation, and patch images files. The latter set of files weren't pushed as they are collectively over 140 GB in size.
+2. `preprocessing_playground.ipynb`: Contains code that was used to unzip the training images, replace damaged images with the provided patch images, removing corrupted images (turns out, there was only one such image), and tests related to rescaling/cropping images as described in the paper and mean image substraction.
+3. `preprocessing.py`: This script contains cleaned up code from the above mentioned python notebook which was used to rescales and crops 1.2 million training images, as well as the validation and testing images.
+4. `augment_ingest.ipynb`: This notebook is partly a continuation of `preprocessing_playground.ipynb` as the mean activity of all the training images were computed here and then saved. Tests related to augmentations — random sampling of image portions to expand the training dataset by a factor of 2048 and PCA on all RGB pixels — were performed in here as well. Lastly, the training labels were explored
+5. `./pca_business/`: This folder contains cleaned up scripts that were used to compute the mean and quantiles for scaling the data and then performing Incremental PCA on all RGB pixels of the training images + the saved eigenvectors and eigenvalues from the PCA run.
+6. `alexnet_torch.ipynb`: So far, this contains a PyTorch-ified version of the 2-GPU neural network architechture as defined in the paper, functions that augment the images on the fly, and trial training runs on a subset of the entire training set.
+
+### To-do's
+- [ ] Modifying the *2048x augmentation* such that each batch contains a diverse set of images
+- [ ] Trialing a small run on the university's High Performance Computer (HPC)
+- [ ] Running the model on the entire training set on the HPC 
+
 
 ### A succinct delineation of steps I followed
-(Will be added after the model starts training) 
+(Will be added after the model starts training on the HPC.) 
 
-### Time spent:
-- Preprocessing: 10 pomodoro sessions (~250 minutes)
+### Time spent: 
+- `preprocessing_playground.ipynb`: 10 pomodoro sessions (~250 minutes)
+- `augment_ingest.ipynb`: 
