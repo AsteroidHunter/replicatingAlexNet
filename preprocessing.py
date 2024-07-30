@@ -1,7 +1,7 @@
 """
-This is the final script for rescaling and cropping the training images for AlexNet.
+This is the final script for rescaling and cropping the training , validation, and testing images for AlexNet.
 
-The script creates a list of paths to all the training images, splits them into n chunks
+The script creates a list of paths to all the images being processed, splits them into n chunks
 (where n is the number of cores available), and then rescales/crops them to 256 x 256 sized
 images. The runtime is ~12 minutes for 1.2 million images being preprocessed on ten
 cores.
@@ -10,8 +10,9 @@ For more information and output checks, see preprocessing_playground.ipynb.
 """
 
 import os
-from multiprocessing import Pool
+import argparse
 from PIL import Image
+from multiprocessing import Pool
 
 
 def process_images_for_alexnet(
@@ -20,7 +21,6 @@ def process_images_for_alexnet(
         location_to_save,
         new_width=256,
         new_height=256,
-
 ):
     """
     This function preprocesses images as defined in section 2 of Krizhevsky et al. (2012)
@@ -76,20 +76,42 @@ def process_images_for_alexnet(
             # here, the first argument is size=(W, H) and the second one is resample
             transformed_image = one_image.resize((256, 256), Image.LANCZOS)
 
+        
+        # converting non-RGB to three channel images
+        if transformed_image.mode != "RGB":
+            transformed_image = transformed_image.convert("RGB")
+
         transformed_image.save(f"./{location_to_save}/{image_name_single}")
 
 
-# defining the path to all the training images
-training_images_path = "./images/training_images/"
+# setting arguments that could be passed when running the script
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--in_path', 
+    type=str, 
+    help="The path for the folder containing the training, validation, or testing images to be pre-processed", 
+    required=True
+)
+parser.add_argument(
+    '--out_path', 
+    type=str, 
+    help="The path for the folder where the modified images will be stored", 
+    required=True
+)
+args = parser.parse_args()
+
+
+# defining the path to all the images
+images_path = args.in_path
 
 # creating list of paths to all the images and all images names
-training_images_path_all = [
-    training_images_path + f for f in os.listdir(training_images_path)
+images_path_all = [
+    images_path + f for f in os.listdir(images_path)
     if f.endswith(".JPEG")
 ]
 
-training_images_just_names = [
-    f for f in os.listdir(training_images_path)
+images_just_names = [
+    f for f in os.listdir(images_path)
     if f.endswith(".JPEG")
 ]
 
@@ -118,24 +140,27 @@ def chunkify(
 
 # creating a directory to store the outputs
 try:
-    os.mkdir("./images/training_images_processed/")
+    os.mkdir(args.out_path)
 except FileExistsError:
     pass
 
-training_images_output_path = "./images/training_images_processed/"
+images_output_path = args.out_path
 
 if __name__ == "__main__":
     number_of_cores = 10
 
     # splitting the paths and names into n portions
-    path_chunks = chunkify(training_images_path_all, number_of_cores)
-    name_chunks = chunkify(training_images_just_names, number_of_cores)
+    path_chunks = chunkify(images_path_all, number_of_cores)
+    name_chunks = chunkify(images_just_names, number_of_cores)
 
     # list of arguments for the all the tasks
     arguments = [
-        (path_chunks[i], name_chunks[i], training_images_output_path, 256, 256)
+        (path_chunks[i], name_chunks[i], images_output_path, 256, 256)
         for i in range(number_of_cores)
     ]
 
     with Pool(number_of_cores) as pool:
         pool.starmap(process_images_for_alexnet, arguments)
+
+    print("Partial image pre-processing complete.")
+    print("The processed images can be found in: ", {args.out_path})
