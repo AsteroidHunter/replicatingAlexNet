@@ -5,6 +5,8 @@
 
 This repository contains my attempt at replicating [Krizhevsky et al. (2012)](https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf). I chose AlexNet because it is a foundational paper in deep learning and replicating it would allow me to get a better grasp of basic research engineering in DL.
 
+![](./plots/metrics_gpu_cpu_run.png)
+
 ### Brief description of the main files/folders
 1. `./images/`: This folder contains images that were used for testing some of the preprocessing steps. Locally, this folder also contains the training, testing, validation, and patch images files. The latter set of files weren't pushed as they are collectively over 140 GB in size.
 2. `preprocessing_playground.ipynb`: Contains code that was used to unzip the training images, replace damaged images with the provided patch images, removing corrupted images (turns out, there was only one such image), and tests related to rescaling/cropping images as described in the paper and mean image substraction.
