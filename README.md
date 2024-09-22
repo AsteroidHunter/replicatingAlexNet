@@ -19,7 +19,7 @@ This repository contains my attempt at replicating [Krizhevsky et al. (2012)](ht
 <div style="text-align: center; width: 100%; display: inline-block;">
 <p style="max-width: 300px; margin: 0 auto; text-align: justify;">
 
-**Table 1.** Table comparing the top-1 and top-5 percentage errors between the original paper and this replication. These values were computed using the *ten-patch prediction averaging* method described in $\large{\S}$4.1 of the paper. The code can be found in the script titled `val_acc_multi.py`.
+**Table 1.** Table comparing the top-1 and top-5 percentage errors between the original paper and this replication. These values were computed using the *ten-patch prediction averaging* method described in section 4.1 of the paper. The code can be found in the script titled `val_acc_multi.py`.
 
 </p>
 </div>
