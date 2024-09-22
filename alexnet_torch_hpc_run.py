@@ -111,12 +111,6 @@ class AlexNet(nn.Module):
     
     The top layers of the model reside on the first GPU, and the bottom layers
     reside on the second GPU. The input image is fed to both the layers. 
-    However, for the top layer, the bottom half is masked (pixel values are
-    multiplied by `mask_value=0`) and vice-versa. Masking was done because 
-    in the paper, the authors' stated that "One GPU runs the layer-parts at
-    the top of the figure while the other runs the layer-parts at the bottom." 
-    The masking approach was the best solution I could devise to replicate what
-    the author's did in the original publication.
     
     There are a few redundant function calls & 
     repeated output concatenations in this model; I have left them in place as
@@ -124,11 +118,10 @@ class AlexNet(nn.Module):
     GPU-layer mismatch errors.
     """
     
-    def __init__(self, number_of_classes=1000, mask_value=0):
+    def __init__(self, number_of_classes=1000):
         super().__init__()
 
         self.number_of_classes = number_of_classes
-        self.mask_value = mask_value
         
         self.conv1_top = nn.Conv2d(
             in_channels=3,
@@ -265,29 +258,29 @@ class AlexNet(nn.Module):
             p=0.5,
         ).to(device2)
 
-    def mask_input(self, x, mask_value=None):
-        if mask_value is None:
-            mask_value = self.mask_value
-            
-        x_device = x.device
-        *_, height, width = x.shape
-        
-        upper_mask = torch.ones((height, width))
-        upper_mask[int(height / 2):, :] = mask_value
-        
-        lower_mask = torch.zeros((height, width))
-        lower_mask[:int(height / 2), :] = mask_value
-
-        upper_mask = upper_mask.to(x_device)
-        lower_mask = lower_mask.to(x_device)
-        
-        return x * upper_mask, x * lower_mask
+    #def mask_input(self, x, mask_value=None):
+    #    if mask_value is None:
+    #        mask_value = self.mask_value
+    #        
+    #    x_device = x.device
+    #    *_, height, width = x.shape
+    #    
+    #    upper_mask = torch.ones((height, width))
+    #    upper_mask[int(height / 2):, :] = mask_value
+    #    
+    #    lower_mask = torch.zeros((height, width))
+    #    lower_mask[:int(height / 2), :] = mask_value
+    #
+    #    upper_mask = upper_mask.to(x_device)
+    #    lower_mask = lower_mask.to(x_device)
+    #    
+    #    return x * upper_mask, x * lower_mask
     
     def forward(self, x):
         
-        top_image, bottom_image = self.mask_input(x)
-        top_image = top_image.to(device1)
-        bottom_image = bottom_image.to(device2)
+        # top_image, bottom_image = self.mask_input(x)
+        top_image = x.to(device1)
+        bottom_image = x.to(device2)
 
 
         # first layer
@@ -396,6 +389,7 @@ class AlexNet(nn.Module):
         x = self.dense_last(combined_output)
         
         return x.to(device2)
+
 
 def initialize_weights_biases(model):
     """
@@ -605,7 +599,8 @@ train_loader = DataLoader(
     alexnet_training_set, 
     batch_size=128,
     shuffle=True, 
-    num_workers=0
+    num_workers=5,
+    pin_memory=True,
 )
 
 # instantiating the dataset and dataloader for validation data
@@ -620,7 +615,8 @@ validation_loader = DataLoader(
     alexnet_validation_set, 
     batch_size=128,
     shuffle=True,
-    num_workers=0
+    num_workers=5,
+    pin_memory=True,
 )
 
 initial_learning_rate = 0.01
@@ -646,9 +642,9 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, 
     mode="max",
     factor=0.1,
-    patience=10,
+    patience=8,
     threshold=0.01,
-    cooldown=4,
+    cooldown=5,
     min_lr=initial_learning_rate / 1000
 )
 
@@ -660,14 +656,15 @@ current_date_formatted = date.today().strftime("%Y%m%d")
 
 log_file_name = f"./logs/training_log_full_{current_date_formatted}.csv"
 
-def write_to_csv(epoch, train_loss, train_acc, val_loss, val_acc, lr):
+def write_to_csv(time, epoch, train_loss, train_acc, val_loss, val_acc, lr):
     with open(log_file_name, "a", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([epoch, train_loss, train_acc, val_loss, val_acc, lr])
+        writer.writerow([time, epoch, train_loss, train_acc, val_loss, val_acc, lr])
 
 with open(log_file_name, "w", newline='') as file:
     writer = csv.writer(file)
     writer.writerow([
+        "time",
         "epoch", 
         "training_loss", 
         "training_accuracy",
@@ -749,7 +746,15 @@ for epoch in range(num_epochs):
     alexnet_training_set.update_epoch_number()
     alexnet_validation_set.update_epoch_number()
     
-    write_to_csv(epoch + 1, epoch_loss, epoch_acc, val_epoch_loss, val_epoch_acc, current_lr)
+    write_to_csv(
+        datetime.today().strftime("%Y%m%d_%H%M"), 
+        epoch + 1, 
+        epoch_loss, 
+        epoch_acc, 
+        val_epoch_loss, 
+        val_epoch_acc, 
+        current_lr
+    )
 
 print()
 print(f"Trial training done! Loss and accuracy values were saved to {log_file_name}")
